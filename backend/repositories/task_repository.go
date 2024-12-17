@@ -21,6 +21,7 @@ type TaskRepositoryInterface interface {
 	Create(task *models.Task) (taskResponse *models.Task, err error)
 	Update(task *models.Task) (taskResponse *models.Task, err error)
 	Get(id int64) (task *models.Task, err error)
+	Delete(id int64) (err error)
 }
 
 func (r *TaskRepository) Create(task *models.Task) (taskResponse *models.Task, err error) {
@@ -99,4 +100,9 @@ func (r *TaskRepository) Get(id int64) (task *models.Task, err error) {
 	}
 
 	return task, nil
+}
+
+func (r *TaskRepository) Delete(id int64) (err error) {
+	_, err = r.db.Exec(`DELETE FROM tasks WHERE id = $1`, id)
+	return err
 }

@@ -33,4 +33,5 @@ func SetupRoutes(app *fiber.App, userHandler *handlers.UserHandler, taskHandler 
 	task.Post("/", taskHandler.CreateTask, middleware.AuthMiddleware())
 	task.Put("/:id", taskHandler.UpdateTask, middleware.AuthMiddleware())
 	task.Get("/:id", taskHandler.GetTask, middleware.AuthMiddleware())
+	task.Delete("/:id", taskHandler.DeleteTask, middleware.AuthMiddleware())
 }

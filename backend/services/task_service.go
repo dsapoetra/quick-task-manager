@@ -18,6 +18,7 @@ type TaskServiceInterface interface {
 	Create(task *models.Task) (taskResponse *models.Task, err error)
 	Update(task *models.Task) (taskResponse *models.Task, err error)
 	Get(id int64) (task *models.Task, err error)
+	Delete(id int64) (err error)
 }
 
 func (s *TaskService) Create(task *models.Task) (taskResponse *models.Task, err error) {
@@ -40,4 +41,8 @@ func (s *TaskService) Update(task *models.Task) (taskResponse *models.Task, err 
 
 func (s *TaskService) Get(id int64) (task *models.Task, err error) {
 	return s.taskRepository.Get(id)
+}
+
+func (s *TaskService) Delete(id int64) (err error) {
+	return s.taskRepository.Delete(id)
 }

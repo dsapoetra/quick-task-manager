@@ -136,6 +136,44 @@ func (h *TaskHandler) GetTask(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(task)
 }
 
+// @Summary Delete a task
+// @Description Delete a task by ID
+// @Tags tasks
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param Authorization header string true "Bearer {token}"
+// @Param id path int true "Task ID"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/task/{id} [delete]
+func (h *TaskHandler) DeleteTask(c *fiber.Ctx) error {
+	_, err := parseUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+	id, err := c.ParamsInt("id")
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	err = h.taskService.Delete(int64(id))
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "Task deleted successfully",
+	})
+}
+
 func parseUserID(c *fiber.Ctx) (int64, error) {
 	userID := fmt.Sprintf("%d", c.Locals("userId"))
 	var parsedID int64
