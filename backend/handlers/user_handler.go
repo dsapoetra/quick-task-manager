@@ -23,6 +23,16 @@ type UserHandlerInterface interface {
 	GetProfile(c *fiber.Ctx) error
 }
 
+// @Summary Register a new user
+// @Description Register a new user with the provided details
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param user body models.User true "User object"
+// @Success 200 {object} models.User
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/auth/register [post]
 func (h *UserHandler) Register(c *fiber.Ctx) error {
 	var user models.User
 	if err := c.BodyParser(&user); err != nil {
@@ -50,6 +60,18 @@ func (h *UserHandler) Register(c *fiber.Ctx) error {
 
 	return c.Status(fiber.StatusCreated).JSON(responseUser)
 }
+
+// Login godoc
+// @Summary Login a user
+// @Description Login a user with the provided credentials
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param credentials body models.User true "User credentials"
+// @Success 200 {object} models.User
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/auth/login [post]
 func (h *UserHandler) Login(c *fiber.Ctx) error {
 	var credentials struct {
 		Email    string `json:"email"`
@@ -79,58 +101,3 @@ func (h *UserHandler) Login(c *fiber.Ctx) error {
 		"token": token,
 	})
 }
-
-func (h *UserHandler) GetProfile(c *fiber.Ctx) error {
-	userId := c.Locals("userId").(int64)
-
-	user, err := h.userService.GetUserById(userId)
-	if err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": "User not found",
-		})
-	}
-
-	// Clear password before sending response
-	user.Password = ""
-	return c.JSON(user)
-}
-
-// Additional example handlers...
-// func (h *UserHandler) ExampleCreate(c *fiber.Ctx) error {
-// 	var item models.Example
-// 	if err := c.BodyParser(&item); err != nil {
-// 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-// 			"error": "Invalid request body",
-// 		})
-// 	}
-
-// 	// Example service call
-// 	if err := h.userService.Create(&item); err != nil {
-// 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-// 			"error": "Failed to create item",
-// 		})
-// 	}
-
-// 	return c.Status(fiber.StatusCreated).JSON(item)
-// }
-
-// func (h *UserHandler) ExampleList(c *fiber.Ctx) error {
-// 	limit := c.QueryInt("limit", 10)
-// 	offset := c.QueryInt("offset", 0)
-
-// 	// Example service call
-// 	items, err := h.userService.List(limit, offset)
-// 	if err != nil {
-// 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-// 			"error": "Failed to retrieve items",
-// 		})
-// 	}
-
-// 	return c.JSON(fiber.Map{
-// 		"items": items,
-// 		"metadata": fiber.Map{
-// 			"limit":  limit,
-// 			"offset": offset,
-// 		},
-// 	})
-// }
