@@ -3,6 +3,8 @@ package handlers
 import (
 	"backend/models"
 	"backend/services"
+	"fmt"
+	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -25,18 +27,30 @@ type TaskHandlerInterface interface {
 // @Tags tasks
 // @Accept json
 // @Produce json
+// @Security BearerAuth
+// @Param Authorization header string true "Bearer {token}"
 // @Param task body models.Task true "Task object"
 // @Success 201 {object} models.Task
-// @Failure 400 {object} map[string]string
-// @Failure 500 {object} map[string]string
+// @Failure 400 {object} map[string]string "Bad Request"
+// @Failure 401 {object} map[string]string "Unauthorized"
+// @Failure 500 {object} map[string]string "Internal Server Error"
 // @Router /api/task [post]
 func (h *TaskHandler) CreateTask(c *fiber.Ctx) error {
+	// Decrypt the jwt token
+	// Get userID directly from context
+	parsedID, err := parseUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
 	var task models.Task
 	if err := c.BodyParser(&task); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": err.Error(),
 		})
 	}
+	task.AssignerID = &parsedID
 
 	createdTask, err := h.taskService.Create(&task)
 	if err != nil {
@@ -53,6 +67,8 @@ func (h *TaskHandler) CreateTask(c *fiber.Ctx) error {
 // @Tags tasks
 // @Accept json
 // @Produce json
+// @Security BearerAuth
+// @Param Authorization header string true "Bearer {token}"
 // @Param id path int true "Task ID"
 // @Param task body models.Task true "Task object"
 // @Success 200 {object} models.Task
@@ -60,6 +76,12 @@ func (h *TaskHandler) CreateTask(c *fiber.Ctx) error {
 // @Failure 500 {object} map[string]string
 // @Router /api/task/{id} [put]
 func (h *TaskHandler) UpdateTask(c *fiber.Ctx) error {
+	parsedID, err := parseUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
 	var task models.Task
 	if err := c.BodyParser(&task); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -67,6 +89,7 @@ func (h *TaskHandler) UpdateTask(c *fiber.Ctx) error {
 		})
 	}
 
+	task.AssignerID = &parsedID
 	updatedTask, err := h.taskService.Update(&task)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -82,12 +105,20 @@ func (h *TaskHandler) UpdateTask(c *fiber.Ctx) error {
 // @Tags tasks
 // @Accept json
 // @Produce json
+// @Security BearerAuth
+// @Param Authorization header string true "Bearer {token}"
 // @Param id path int true "Task ID"
 // @Success 200 {object} models.Task
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /api/task/{id} [get]
 func (h *TaskHandler) GetTask(c *fiber.Ctx) error {
+	_, err := parseUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
 	id, err := c.ParamsInt("id")
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -103,4 +134,15 @@ func (h *TaskHandler) GetTask(c *fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusOK).JSON(task)
+}
+
+func parseUserID(c *fiber.Ctx) (int64, error) {
+	userID := fmt.Sprintf("%d", c.Locals("userId"))
+	var parsedID int64
+	var err error
+	parsedID, err = strconv.ParseInt(userID, 10, 64)
+	if err != nil {
+		return 0, err
+	}
+	return parsedID, nil
 }

@@ -133,6 +133,11 @@ paths:
       - application/json
       description: Create a new task with the provided details
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Task object
         in: body
         name: task
@@ -152,12 +157,20 @@ paths:
             additionalProperties:
               type: string
             type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "500":
           description: Internal Server Error
           schema:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Create a new task
       tags:
       - tasks
@@ -167,6 +180,11 @@ paths:
       - application/json
       description: Get a task by ID
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Task ID
         in: path
         name: id
@@ -191,6 +209,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Get a task
       tags:
       - tasks
@@ -199,6 +219,11 @@ paths:
       - application/json
       description: Update a task with the provided details
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Task ID
         in: path
         name: id
@@ -229,6 +254,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Update a task
       tags:
       - tasks

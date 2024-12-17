@@ -121,6 +121,11 @@ const docTemplate = `{
         },
         "/api/task": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Create a new task with the provided details",
                 "consumes": [
                     "application/json"
@@ -133,6 +138,13 @@ const docTemplate = `{
                 ],
                 "summary": "Create a new task",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "description": "Task object",
                         "name": "task",
@@ -159,6 +171,15 @@ const docTemplate = `{
                             }
                         }
                     },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -173,6 +194,11 @@ const docTemplate = `{
         },
         "/api/task/{id}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Get a task by ID",
                 "consumes": [
                     "application/json"
@@ -185,6 +211,13 @@ const docTemplate = `{
                 ],
                 "summary": "Get a task",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "integer",
                         "description": "Task ID",
@@ -221,6 +254,11 @@ const docTemplate = `{
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Update a task with the provided details",
                 "consumes": [
                     "application/json"
@@ -233,6 +271,13 @@ const docTemplate = `{
                 ],
                 "summary": "Update a task",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "integer",
                         "description": "Task ID",

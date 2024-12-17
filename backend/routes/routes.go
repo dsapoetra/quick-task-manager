@@ -2,6 +2,7 @@ package routes
 
 import (
 	"backend/handlers"
+	"backend/middleware"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -28,8 +29,8 @@ func SetupRoutes(app *fiber.App, userHandler *handlers.UserHandler, taskHandler 
 	auth.Post("/register", userHandler.Register)
 	auth.Post("/login", userHandler.Login)
 
-	task := api.Group("/task")
-	task.Post("/", taskHandler.CreateTask)
-	task.Put("/:id", taskHandler.UpdateTask)
-	task.Get("/:id", taskHandler.GetTask)
+	task := api.Group("/task", middleware.AuthMiddleware())
+	task.Post("/", taskHandler.CreateTask, middleware.AuthMiddleware())
+	task.Put("/:id", taskHandler.UpdateTask, middleware.AuthMiddleware())
+	task.Get("/:id", taskHandler.GetTask, middleware.AuthMiddleware())
 }
