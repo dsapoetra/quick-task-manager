@@ -19,6 +19,8 @@ func NewTaskRepository(db sqlx.DB) TaskRepositoryInterface {
 // Interface
 type TaskRepositoryInterface interface {
 	Create(task *models.Task) (taskResponse *models.Task, err error)
+	Update(task *models.Task) (taskResponse *models.Task, err error)
+	Get(id int64) (task *models.Task, err error)
 }
 
 func (r *TaskRepository) Create(task *models.Task) (taskResponse *models.Task, err error) {
@@ -49,4 +51,52 @@ func (r *TaskRepository) Create(task *models.Task) (taskResponse *models.Task, e
 	}
 
 	return taskResponse, nil
+}
+
+func (r *TaskRepository) Update(task *models.Task) (taskResponse *models.Task, err error) {
+	taskResponse = &models.Task{
+		ID:          task.ID,
+		Title:       task.Title,
+		Description: task.Description,
+		Status:      task.Status,
+		AssigneeID:  task.AssigneeID,
+		AssignerID:  task.AssignerID,
+		Priority:    task.Priority,
+	}
+
+	err = r.db.QueryRow(`
+		UPDATE tasks SET title = $1, description = $2, status = $3, assignee_id = $4, assigner_id = $5, priority = $6, updated_at = NOW()
+		WHERE id = $7
+		RETURNING id
+	`,
+		task.Title,
+		task.Description,
+		task.Status,
+		task.AssigneeID,
+		task.AssignerID,
+		task.Priority,
+		task.ID,
+	).Scan(&taskResponse.ID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return taskResponse, nil
+}
+
+func (r *TaskRepository) Get(id int64) (task *models.Task, err error) {
+	// Select the task from the database but not using *
+	task = &models.Task{}
+	err = r.db.QueryRow(`
+		SELECT id, title, description, status, assignee_id, assigner_id, priority, created_at, updated_at
+		FROM tasks
+		WHERE id = $1
+	`, id).Scan(&task.ID, &task.Title, &task.Description, &task.Status, &task.AssigneeID, &task.AssignerID, &task.Priority, &task.CreatedAt, &task.UpdatedAt)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return task, nil
 }
