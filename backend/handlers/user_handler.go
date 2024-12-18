@@ -3,6 +3,7 @@ package handlers
 import (
 	"backend/models"
 	"backend/services"
+	"fmt"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -100,4 +101,43 @@ func (h *UserHandler) Login(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"token": token,
 	})
+}
+
+// GetProfile godoc
+// @Summary Get user profile
+// @Description Get the profile of the currently authenticated user
+// @Tags users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param Authorization header string true "Bearer {token}"
+// @Success 200 {object} models.User
+// @Failure 401 {object} map[string]string "Unauthorized"
+// @Failure 500 {object} map[string]string "Internal Server Error"
+// @Router /api/auth/profile [get]
+func (h *UserHandler) GetProfile(c *fiber.Ctx) error {
+	// Debug print all locals
+	userIDInterface := c.Locals("userId")
+	if userIDInterface == nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "User ID not found in context",
+		})
+	}
+
+	userID, ok := userIDInterface.(int64)
+	if !ok {
+		fmt.Printf("Type of userIDInterface: %T\n", userIDInterface)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Invalid user ID format",
+		})
+	}
+
+	user, err := h.userService.GetUserById(userID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(user)
 }

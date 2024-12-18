@@ -10,6 +10,7 @@ import (
 
 func AuthMiddleware() fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		fmt.Printf("Processing request for path: %s\n", c.Path())
 		authHeader := c.Get("Authorization")
 		if authHeader == "" {
 			return c.Status(401).JSON(fiber.Map{"error": "Authorization header required"})
@@ -22,20 +23,20 @@ func AuthMiddleware() fiber.Handler {
 
 		token := parts[1]
 
-		// Validate token
 		claims, err := jwt.ValidateToken(token, "your-secret-key")
 		if err != nil {
+			fmt.Printf("Token validation error: %v\n", err)
 			return c.Status(401).JSON(fiber.Map{"error": "Invalid token"})
 		}
 
-		// Set both the claims and user ID in context
-		userId := claims["user_id"].(float64)
-		c.Locals("userId", int64(userId))
+		// Make sure we're accessing the correct claim key
+		userID, ok := claims["user_id"]
+		if !ok {
+			return c.Status(401).JSON(fiber.Map{"error": "User ID not found in token"})
+		}
 
-		// Convert user_id to string for the Subject claim
-		c.Locals("Bearer", map[string]interface{}{
-			"Subject": fmt.Sprintf("%d", int64(userId)),
-		})
+		// Set the user ID in context
+		c.Locals("userId", int64(userID.(float64)))
 
 		return c.Next()
 	}

@@ -22,6 +22,7 @@ type TaskRepositoryInterface interface {
 	Update(task *models.Task) (taskResponse *models.Task, err error)
 	Get(id int64) (task *models.Task, err error)
 	Delete(id int64) (err error)
+	GetTasksByAssignerID(assignerID int64) ([]models.Task, error)
 }
 
 func (r *TaskRepository) Create(task *models.Task) (taskResponse *models.Task, err error) {
@@ -105,4 +106,13 @@ func (r *TaskRepository) Get(id int64) (task *models.Task, err error) {
 func (r *TaskRepository) Delete(id int64) (err error) {
 	_, err = r.db.Exec(`DELETE FROM tasks WHERE id = $1`, id)
 	return err
+}
+
+func (r *TaskRepository) GetTasksByAssignerID(assignerID int64) ([]models.Task, error) {
+	var tasks []models.Task
+	err := r.db.Select(&tasks, "SELECT id, title, description, status, assignee_id, assigner_id, priority, created_at, updated_at FROM tasks WHERE assigner_id = $1", assignerID)
+	if err != nil {
+		return nil, err
+	}
+	return tasks, nil
 }

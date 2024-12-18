@@ -5,6 +5,7 @@ import (
 	"backend/middleware"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 )
 
 // @title Task Manager API
@@ -21,17 +22,34 @@ import (
 
 // @host localhost:8080
 // @BasePath /api
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Enter your bearer token in the format **Bearer &lt;token&gt;**
 func SetupRoutes(app *fiber.App, userHandler *handlers.UserHandler, taskHandler *handlers.TaskHandler) {
+	app.Use(cors.New(cors.Config{
+		AllowOrigins:     "http://localhost:3000",
+		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
+		AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH",
+		AllowCredentials: true,
+	}))
+
 	api := app.Group("/api")
+	auth := api.Group("/auth")
 
 	// Public routes
-	auth := api.Group("/auth")
 	auth.Post("/register", userHandler.Register)
 	auth.Post("/login", userHandler.Login)
 
+	// Protected routes
+	protected := auth.Group("/", middleware.AuthMiddleware())
+	protected.Get("/profile", userHandler.GetProfile) // Fixed this line
+
+	// Task routes (already protected correctly)
 	task := api.Group("/task", middleware.AuthMiddleware())
-	task.Post("/", taskHandler.CreateTask, middleware.AuthMiddleware())
-	task.Put("/:id", taskHandler.UpdateTask, middleware.AuthMiddleware())
-	task.Get("/:id", taskHandler.GetTask, middleware.AuthMiddleware())
-	task.Delete("/:id", taskHandler.DeleteTask, middleware.AuthMiddleware())
+	task.Get("/assigner", taskHandler.GetTasksByAssignerID)
+	task.Post("/", taskHandler.CreateTask)
+	task.Put("/:id", taskHandler.UpdateTask)
+	task.Get("/:id", taskHandler.GetTask)
+	task.Delete("/:id", taskHandler.DeleteTask)
 }

@@ -174,6 +174,46 @@ func (h *TaskHandler) DeleteTask(c *fiber.Ctx) error {
 	})
 }
 
+// GetTasksByAssignerID godoc
+// @Summary Get tasks by assigner ID
+// @Description Get tasks by assigner ID
+// @Tags tasks
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param Authorization header string true "Bearer {token}"
+// @Success 200 {object} []models.Task
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/task/assigner [get]
+func (h *TaskHandler) GetTasksByAssignerID(c *fiber.Ctx) error {
+	userIDInterface := c.Locals("userId")
+	if userIDInterface == nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "User ID not found in context",
+		})
+	}
+
+	userID, ok := userIDInterface.(int64)
+	if !ok {
+		fmt.Printf("UserID type: %T, value: %v\n", userIDInterface, userIDInterface)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Invalid user ID format",
+		})
+	}
+
+	fmt.Printf("Fetching tasks for assigner ID: %d\n", userID)
+	tasks, err := h.taskService.GetTasksByAssignerID(userID)
+	if err != nil {
+		fmt.Printf("Error getting tasks: %v\n", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(tasks)
+}
+
 func parseUserID(c *fiber.Ctx) (int64, error) {
 	userID := fmt.Sprintf("%d", c.Locals("userId"))
 	var parsedID int64

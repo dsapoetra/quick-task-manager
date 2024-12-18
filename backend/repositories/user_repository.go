@@ -49,7 +49,7 @@ func (r *UserRepository) FindByUsername(username string) (*models.User, error) {
 
 func (r *UserRepository) FindByEmail(email string) (*models.User, error) {
 	var user models.User
-	err := r.db.Get(&user, "SELECT username, email, password, created_at, updated_at FROM users WHERE email = $1", email)
+	err := r.db.Get(&user, "SELECT id, username, email, password, created_at, updated_at FROM users WHERE email = $1", email)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +58,7 @@ func (r *UserRepository) FindByEmail(email string) (*models.User, error) {
 
 func (r *UserRepository) FindById(id int64) (*models.User, error) {
 	var user models.User
-	err := r.db.Get(&user, "SELECT username, email, password, created_at, updated_at FROM users WHERE id = $1", id)
+	err := r.db.Get(&user, "SELECT id, username, email, password, created_at, updated_at FROM users WHERE id = $1", id)
 	if err != nil {
 		return nil, err
 	}

@@ -16,7 +16,8 @@ type UserService struct {
 type UserServiceInterface interface {
 	Register(user *models.User) error
 	Login(email, password string) (string, error)
-	GetUserById(userId int64) (*models.User, error)
+	GetUserById(userId int64) (*models.UserResponse, error)
+	GetUserByEmail(email string) (*models.UserResponse, error)
 }
 
 func NewUserService(userRepo repositories.UserRepositoryInterface) UserServiceInterface {
@@ -62,6 +63,30 @@ func (s *UserService) Login(email, password string) (string, error) {
 	return token, nil
 }
 
-func (s *UserService) GetUserById(userId int64) (*models.User, error) {
-	return s.userRepo.FindById(userId)
+func (s *UserService) GetUserById(userId int64) (*models.UserResponse, error) {
+	user, err := s.userRepo.FindById(userId)
+	if err != nil {
+		return nil, err
+	}
+	return &models.UserResponse{
+		ID:        user.ID,
+		Username:  user.Username,
+		Email:     user.Email,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
+	}, nil
+}
+
+func (s *UserService) GetUserByEmail(email string) (*models.UserResponse, error) {
+	user, err := s.userRepo.FindByEmail(email)
+	if err != nil {
+		return nil, err
+	}
+	return &models.UserResponse{
+		ID:        user.ID,
+		Username:  user.Username,
+		Email:     user.Email,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
+	}, nil
 }
