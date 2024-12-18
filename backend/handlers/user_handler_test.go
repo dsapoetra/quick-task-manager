@@ -75,7 +75,7 @@ func TestUserHandler_Register(t *testing.T) {
 					Return(errors.New("service error"))
 			},
 			expectedStatus: fiber.StatusInternalServerError,
-			expectedBody:   `{"error":"Failed to register user"}`,
+			expectedBody:   `{"error":"Failed to register user, service error"}`,
 		},
 	}
 

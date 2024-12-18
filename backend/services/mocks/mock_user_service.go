@@ -34,11 +34,26 @@ func (m *MockUserServiceInterface) EXPECT() *MockUserServiceInterfaceMockRecorde
 	return m.recorder
 }
 
+// GetUserByEmail mocks base method.
+func (m *MockUserServiceInterface) GetUserByEmail(email string) (*models.UserResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserByEmail", email)
+	ret0, _ := ret[0].(*models.UserResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserByEmail indicates an expected call of GetUserByEmail.
+func (mr *MockUserServiceInterfaceMockRecorder) GetUserByEmail(email interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByEmail", reflect.TypeOf((*MockUserServiceInterface)(nil).GetUserByEmail), email)
+}
+
 // GetUserById mocks base method.
-func (m *MockUserServiceInterface) GetUserById(userId int64) (*models.User, error) {
+func (m *MockUserServiceInterface) GetUserById(userId int64) (*models.UserResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUserById", userId)
-	ret0, _ := ret[0].(*models.User)
+	ret0, _ := ret[0].(*models.UserResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
