@@ -10,7 +10,6 @@ import (
 
 func AuthMiddleware() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		fmt.Printf("Processing request for path: %s\n", c.Path())
 		authHeader := c.Get("Authorization")
 		if authHeader == "" {
 			return c.Status(401).JSON(fiber.Map{"error": "Authorization header required"})

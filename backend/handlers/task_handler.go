@@ -50,6 +50,12 @@ func (h *TaskHandler) CreateTask(c *fiber.Ctx) error {
 			"error": err.Error(),
 		})
 	}
+
+	if !task.Status.IsValid() {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid status. Must be TO_DO, IN_PROGRESS, or DONE",
+		})
+	}
 	task.AssignerID = &parsedID
 
 	createdTask, err := h.taskService.Create(&task)
@@ -196,13 +202,11 @@ func (h *TaskHandler) GetTasksByAssignerID(c *fiber.Ctx) error {
 
 	userID, ok := userIDInterface.(int64)
 	if !ok {
-		fmt.Printf("UserID type: %T, value: %v\n", userIDInterface, userIDInterface)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Invalid user ID format",
 		})
 	}
 
-	fmt.Printf("Fetching tasks for assigner ID: %d\n", userID)
 	tasks, err := h.taskService.GetTasksByAssignerID(userID)
 	if err != nil {
 		fmt.Printf("Error getting tasks: %v\n", err)
