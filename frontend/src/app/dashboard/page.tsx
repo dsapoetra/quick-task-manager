@@ -42,6 +42,24 @@ const Dashboard: React.FC = () => {
     fetchTasks();
   }, []);
     
+  const handleStatusUpdate = async (taskId: number, updatedTask: Task) => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/task/${taskId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`
+        },
+        body: JSON.stringify(updatedTask),
+      });
+
+      if (response.ok) {
+        fetchTasks(); // Refresh the task list
+      }
+    } catch (error) {
+      console.error('Failed to update task:', error);
+    }
+  };
   const handleCreateTask = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -287,42 +305,51 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
       )}
-          <ul className="divide-y divide-gray-200">
-            {tasks.map((task) => (
-              <li key={task.id} className="px-4 py-4 sm:px-6 hover:bg-gray-50">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-medium text-gray-900 truncate">
-                      {task.title}
-                    </h3>
-                    <p className="mt-1 text-sm text-gray-500">
-                      {task.description}
-                    </p>
-                  </div>
-                  <div className="flex items-center space-x-4">
-                    <span className={`px-2 py-1 text-xs rounded-full ${
-                      task.priority === 'HIGH' 
-                        ? 'bg-red-100 text-red-800'
-                        : task.priority === 'MEDIUM'
-                        ? 'bg-yellow-100 text-yellow-800'
-                        : 'bg-green-100 text-green-800'
-                    }`}>
-                      {task.priority}
-                    </span>
-                    <span className={`px-2 py-1 text-xs rounded-full ${
-                      task.status === 'DONE'
-                        ? 'bg-green-100 text-green-800'
-                        : task.status === 'IN_PROGRESS'
-                        ? 'bg-blue-100 text-blue-800'
-                        : 'bg-gray-100 text-gray-800'
-                    }`}>
-                      {task.status}
-                    </span>
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
+           <ul className="divide-y divide-gray-200">
+      {tasks.map((task) => (
+        <li key={task.id} className="px-4 py-4 sm:px-6 hover:bg-gray-50">
+          <div className="flex items-center justify-between">
+            <div className="flex-1 min-w-0">
+              <h3 className="text-sm font-medium text-gray-900 truncate">
+                {task.title}
+              </h3>
+              <p className="mt-1 text-sm text-gray-500">
+                {task.description}
+              </p>
+            </div>
+            <div className="flex items-center space-x-4">
+              <span className={`px-2 py-1 text-xs rounded-full ${
+                task.priority === 'HIGH' 
+                  ? 'bg-red-100 text-red-800'
+                  : task.priority === 'MEDIUM'
+                  ? 'bg-yellow-100 text-yellow-800'
+                  : 'bg-green-100 text-green-800'
+              }`}>
+                {task.priority}
+              </span>
+              <select
+                value={task.status}
+                onChange={(e) => handleStatusUpdate(task.id, { 
+                  ...task, 
+                  status: e.target.value as 'TO_DO' | 'IN_PROGRESS' | 'DONE' 
+                })}
+                className={`px-2 py-1 text-xs rounded-md border-0 ${
+                  task.status === 'DONE'
+                    ? 'bg-green-100 text-green-800'
+                    : task.status === 'IN_PROGRESS'
+                    ? 'bg-blue-100 text-blue-800'
+                    : 'bg-gray-100 text-gray-800'
+                }`}
+              >
+                <option value="TO_DO">Todo</option>
+                <option value="IN_PROGRESS">In Progress</option>
+                <option value="DONE">Done</option>
+              </select>
+            </div>
+          </div>
+        </li>
+      ))}
+    </ul>
         </div>
       </main>
     </div>
