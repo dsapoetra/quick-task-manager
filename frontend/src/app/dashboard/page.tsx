@@ -7,10 +7,70 @@ import { UserData, Task } from '../types/auth.types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+interface CreateTaskForm {
+    title: string;
+    description: string;
+    priority: number;
+    status: 'TODO' | 'IN_PROGRESS' | 'DONE';
+    assignee_id: number;
+  }
+
 const Dashboard: React.FC = () => {
     const router = useRouter();  // Change this line
     const [user, setUser] = useState<UserData | null>(null);
     const [tasks, setTasks] = useState<Task[]>([]);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formData, setFormData] = useState<CreateTaskForm>({
+    title: '',
+    description: '',
+    priority: 1,
+    status: 'TODO',
+    assignee_id: Number(user?.id) || 0,
+  });
+
+  const fetchTasks = async () => {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/task/assigner`, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`
+      }
+    });
+    const tasks = await response.json();
+    setTasks(tasks);
+  };  
+
+  useEffect(() => {
+    fetchTasks();
+  }, []);
+    
+  const handleCreateTask = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/task`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        setIsModalOpen(false);
+        // Refresh tasks list
+        fetchTasks();
+        // Reset form
+        setFormData({
+          title: '',
+          description: '',
+          priority: 1,
+          status: 'TODO',
+          assignee_id: Number(user?.id) || 0,
+        });
+      }
+    } catch (error) {
+      console.error('Failed to create task:', error);
+    }
+  };
 
   useEffect(() => {
     if (!isTokenValid()) {
@@ -135,12 +195,98 @@ const Dashboard: React.FC = () => {
 
         {/* Tasks List */}
         <div className="bg-white shadow rounded-lg">
-          <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
-            <h2 className="text-lg font-medium text-gray-900">Your Tasks</h2>
-            <button className="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm hover:bg-indigo-700">
-              New Task
-            </button>
+        <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
+        <h2 className="text-lg font-medium text-gray-900">Your Tasks</h2>
+        <button 
+          onClick={() => setIsModalOpen(true)}
+          className="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm hover:bg-indigo-700"
+        >
+          New Task
+        </button>
+      </div>
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-medium">Create New Task</h3>
+              <button 
+                onClick={() => setIsModalOpen(false)}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <form onSubmit={handleCreateTask}>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Title</label>
+                  <input
+                    type="text"
+                    value={formData.title}
+                    onChange={(e) => setFormData({...formData, title: e.target.value})}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Description</label>
+                  <textarea
+                    value={formData.description}
+                    onChange={(e) => setFormData({...formData, description: e.target.value})}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    rows={3}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Priority</label>
+                  <select
+                    value={formData.priority}
+                    onChange={(e) => setFormData({...formData, priority: Number(e.target.value)})}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  >
+                    <option value={1}>Low</option>
+                    <option value={2}>Medium</option>
+                    <option value={3}>High</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Status</label>
+                  <select
+                    value={formData.status}
+                    onChange={(e) => setFormData({...formData, status: e.target.value as 'TODO' | 'IN_PROGRESS' | 'DONE'})}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  >
+                    <option value="TODO">Todo</option>
+                    <option value="IN_PROGRESS">In Progress</option>
+                    <option value="DONE">Done</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="mt-6 flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
+                >
+                  Create Task
+                </button>
+              </div>
+            </form>
           </div>
+        </div>
+      )}
           <ul className="divide-y divide-gray-200">
             {tasks.map((task) => (
               <li key={task.id} className="px-4 py-4 sm:px-6 hover:bg-gray-50">
