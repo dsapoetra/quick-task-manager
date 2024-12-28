@@ -1,39 +1,69 @@
 import { jwtDecode } from 'jwt-decode';
-import { DecodedToken, UserData } from '../types/auth.types';
+import { UserData } from '../types/auth.types';
+
+interface JWTPayload {
+  exp: number;
+  user_id: number;
+}
 
 export const getToken = (): string | null => {
-  return localStorage.getItem('jwt_token');
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('jwt_token');
+  }
+  return null;
 };
 
 export const setToken = (token: string): void => {
-  localStorage.setItem('jwt_token', token);
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('jwt_token', token);
+  }
 };
 
 export const removeToken = (): void => {
-  localStorage.removeItem('jwt_token');
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('jwt_token');
+  }
 };
 
 export const isTokenValid = (): boolean => {
-  const token = getToken();
-  if (!token) return false;
-
   try {
-    const decoded: DecodedToken = jwtDecode(token);
+    const token = getToken();
+    if (!token) {
+      return false;
+    }
+
+    const decoded = jwtDecode<JWTPayload>(token);
     const currentTime = Date.now() / 1000;
     return decoded.exp > currentTime;
-  } catch {
+  } catch (error) {
+    console.error('Error validating token:', error);
     return false;
   }
 };
 
-export const getUserFromToken = (): UserData | null => {
-  const token = getToken();
-  if (!token) return null;
-
+export const getUserFromToken = async (): Promise<UserData | null> => {
   try {
-    const decoded: DecodedToken = jwtDecode(token);
-    return decoded.user;
-  } catch {
+    const token = getToken();
+    if (!token) {
+      return null;
+    }
+
+    // Fetch user profile from API
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/profile`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch user profile');
+    }
+
+    const userData = await response.json();
+    return userData;
+
+  } catch (error) {
+    console.error('Error getting user from token:', error);
     return null;
   }
 };

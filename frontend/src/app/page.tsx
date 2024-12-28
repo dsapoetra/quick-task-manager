@@ -26,7 +26,6 @@ export default function Home() {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Login response:', data); // Debug log
         setToken(data.token);
         router.push('/dashboard');
       } else {

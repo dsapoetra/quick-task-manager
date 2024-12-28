@@ -18,7 +18,7 @@ export interface Task {
   description: string;
   assignee_id: number;
   assigner_id: number;
-  priority: 'HIGH' | 'MEDIUM' | 'LOW';
+  priority: number;
   status: 'TO_DO' | 'IN_PROGRESS' | 'DONE';
   created_at: string;
   updated_at: string;
