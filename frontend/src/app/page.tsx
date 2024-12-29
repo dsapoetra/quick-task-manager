@@ -46,9 +46,9 @@ export default function Home() {
         <Image
           alt="Your Company"
           src="https://tailwindui.com/plus/img/logos/mark.svg?color=indigo&shade=600"
-          width={40}
-          height={40}
-          className="mx-auto w-auto"
+          width={20}
+          height={20}
+          className="mx-auto w-60 h-60"
         />
         <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">
           Sign in to your account
