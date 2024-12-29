@@ -68,7 +68,7 @@ Ensure you have the following installed on your machine:
 Create a `.env` file in the project root and add the following variables:
 
 ```
-NEXT_PUBLIC_API_URL=http://localhost:8080
+NEXT_PUBLIC_API_URL=http://localhost:8080 (or your backend API URL)
 ```
 
 Adjust the `NEXT_PUBLIC_API_URL` to match your backend API URL.
